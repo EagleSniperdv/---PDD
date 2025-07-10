@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>订单管理 - PDD</title>
+  <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            font-size: 12px;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+            color: white;
+            padding: 8px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header-left {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 15px;
+        }
+
+        .header-right a {
+            color: white;
+            text-decoration: none;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 3px;
+            transition: background-color 0.2s;
+        }
+
+        .header-right a:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        /* Main Container */
+        .container {
+            display: flex;
+            max-width: 1200px;
+            margin: 15px auto;
+            gap: 15px;
+            padding: 0 15px;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: white;
+            border-radius: 6px;
+            padding: 15px;
+            height: fit-content;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e8e8e8;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 12px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .form-group select,
+        .form-group input[type="text"],
+        .form-group input[type="number"] {
+            width: 100%;
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            height: 28px;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus {
+            border-color: #4ECDC4;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(78, 205, 196, 0.1);
+        }
+
+        .store-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #666;
+            border: 2px dashed #ddd;
+        }
+
+        .notice {
+            color: #e74c3c;
+            font-size: 12px;
+            margin-bottom: 15px;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: normal;
+        }
+
+        .radio-group input[type="radio"] {
+            width: auto;
+            margin: 0;
+        }
+
+        .quantity-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .quantity-btn {
+            padding: 6px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .quantity-btn:hover {
+            opacity: 0.9;
+        }
+
+        .quantity-btn.active {
+            background: #4ECDC4;
+            color: white;
+            border-color: #4ECDC4;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background: #4ECDC4;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #45b7aa;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .auto-order {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .auto-order h3 {
+            color: #4ECDC4;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .warning-text {
+            color: #e74c3c;
+            font-size: 12px;
+            margin-bottom: 15px;
+        }
+
+        .checkbox-group {
+            margin-bottom: 15px;
+        }
+
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-weight: normal;
+            font-size: 14px;
+        }
+
+        .api-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th, td {
+            padding: 12px 8px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 500;
+            color: #666;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        /* Footer */
+        .footer {
+            background: #333;
+            color: #999;
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+            font-size: 12px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .header-right {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+  <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            测试888 积分: 0.00
+        </div>
+        <nav class="header-right">
+            <a href="#">🏪 店铺介绍</a>
+            <a href="#">👤 会员中心</a>
+            <a href="#">❤️ 积分明细</a>
+            <a href="#">🔍 查询订单</a>
+            <a href="#">🚪 退出</a>
+        </nav>
+    </header>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="form-group">
+                <label>二维码识别</label>
+                <select>
+                    <option>请选择店铺</option>
+                </select>
+            </div>
+
+            <div class="store-info">
+                💙 二维码商家图 请先输入收款者请扫码 💙
+            </div>
+
+            <div class="form-group">
+                <label>输入人助力:</label>
+                <input type="text" placeholder="订单">
+            </div>
+
+            <div class="form-group">
+                <label>类型:</label>
+                <div class="notice">真人9折起: 06:00-11:00 新用户半价时间06:00-24:00</div>
+                <div class="radio-group">
+                    <label><input type="radio" name="type" value="normal" checked> 普通</label>
+                    <label><input type="radio" name="type" value="real"> 真人</label>
+                    <label><input type="radio" name="type" value="new"> 新人</label>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn btn-primary">类型优先级认证</button>
+                <button class="btn btn-secondary">领取优先权益</button>
+            </div>
+
+            <div class="form-group">
+                <label>快速数量:</label>
+                <div class="quantity-buttons">
+                    <button class="quantity-btn">1</button>
+                    <button class="quantity-btn">5</button>
+                    <button class="quantity-btn active">10</button>
+                    <button class="quantity-btn">15</button>
+                    <button class="quantity-btn">20</button>
+                    <button class="quantity-btn">25</button>
+                    <button class="quantity-btn">30</button>
+                </div>
+                <label><input type="checkbox"> 循环</label>
+                <button class="btn btn-primary" style="margin-top: 10px;">立刻提交认证</button>
+            </div>
+
+            <div class="form-group">
+                <label>助力数量:</label>
+                <input type="number" value="10">
+            </div>
+
+            <div class="form-group">
+                <label>消耗积分:</label>
+                <span style="color: #e74c3c; font-weight: bold;">30</span>
+            </div>
+
+            <button class="btn btn-primary" style="width: 100%; margin-bottom: 20px;">立即下单</button>
+
+            <div class="auto-order">
+                <h3>按回车键自动下单</h3>
+                <div class="warning-text">
+                    注意：保证的少少助力用户下了能够顺利完成助力功效，以下需注意 1.准备市场引导认识，请选择正确的下单类型，2.如需要其他服务的话，请下单后联系，前往全自动让其他服务顺利完成，新老保障成功率。
+                </div>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" checked> 下单成功后自动跳转到下单页</label>
+                    <label><input type="checkbox" checked> 显示自动添加本站的认证</label>
+                </div>
+                <div style="color: #4ECDC4; font-size: 12px;">
+                    接受可自行调整成功率
+                </div>
+            </div>
+
+            <div class="api-info">
+                已经绑定{number}，关于5分钟一10分钟左右完成任务，需求时间下面的数据到时间攻击，教会自动跳转页了：<br>
+                https://kzow.cztool.com/index/user/orderimage/ids/{num}
+            </div>
+
+            <div style="color: #e74c3c; font-size: 12px;">
+                如无法启动请刷新页面，请点击复制按钮
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="search-bar">
+                <input type="text" class="search-input" placeholder="请输入订单号、任务链接">
+                <button class="btn btn-primary">搜索</button>
+                <button class="btn btn-secondary">更多</button>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>订单号</th>
+                            <th>任务链接</th>
+                            <th>助力数量</th>
+                            <th>完成数量</th>
+                            <th>状态</th>
+                            <th>类型</th>
+                            <th>创建日期</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="8" class="empty-state">
+                                没有找到匹配的记录
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+  <tbody id="order-table-body">
+    <!-- These are mock data rows -->
+    <tr>
+      <td>20250710001</td>
+      <td>https://tasksite.com/link1</td>
+      <td>10</td>
+      <td>5</td>
+      <td>进行中</td>
+      <td>普通</td>
+      <td>2025-07-10</td>
+      <td><button class="btn btn-secondary" onclick="alert('操作: 取消订单 20250710001')">取消</button></td>
+    </tr>
+    <tr>
+      <td>20250710002</td>
+      <td>https://tasksite.com/link2</td>
+      <td>15</td>
+      <td>15</td>
+      <td>已完成</td>
+      <td>真人</td>
+      <td>2025-07-10</td>
+      <td><button class="btn btn-secondary" onclick="alert('操作: 查看订单 20250710002')">查看</button></td>
+    </tr>
+    <tr>
+      <td>20250710003</td>
+      <td>https://tasksite.com/link3</td>
+      <td>20</td>
+      <td>12</td>
+      <td>进行中</td>
+      <td>新人</td>
+      <td>2025-07-10</td>
+      <td><button class="btn btn-secondary" onclick="alert('操作: 暂停订单 20250710003')">暂停</button></td>
+    </tr>
+    <!-- Fallback row (hidden when results exist) -->
+    <tr id="empty-row" style="display: none;">
+      <td colspan="8" class="empty-state">没有找到匹配的记录</td>
+    </tr>
+  </tbody>
+
+   <!-- Footer -->
+    <footer class="footer">
+        Copyright © 2025 PDD All Rights Reserved 闽ICP备2022004632号-1
+    </footer>
+
+  <script>
+    // Quantity button selection
+    document.querySelectorAll('.quantity-btn').forEach(btn => {
+      btn.addEventListener('click', function () {
+        document.querySelectorAll('.quantity-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+
+        const quantity = this.textContent;
+        document.querySelector('input[type="number"]').value = quantity;
+        const points = parseInt(quantity) * 3;
+        document.querySelector('.form-group span').textContent = points;
+      });
+    });
+
+    // Radio button logic
+    document.querySelectorAll('input[name="type"]').forEach(radio => {
+      radio.addEventListener('change', function () {
+        console.log('选择类型:', this.value);
+      });
+    });
+
+    // Search functionality
+    document.querySelector('.search-bar .btn-primary').addEventListener('click', function () {
+      const searchTerm = document.querySelector('.search-input').value.trim().toLowerCase();
+      const rows = document.querySelectorAll('#order-table-body tr');
+      let match = false;
+
+      rows.forEach(row => {
+        if (row.id === 'empty-row') return;
+        const cells = row.querySelectorAll('td');
+        const order = cells[0].textContent.toLowerCase();
+        const link = cells[1].textContent.toLowerCase();
+
+        if (order.includes(searchTerm) || link.includes(searchTerm)) {
+          row.style.display = '';
+          match = true;
+        } else {
+          row.style.display = 'none';
+        }
+      });
+
+      document.getElementById('empty-row').style.display = match ? 'none' : '';
+    });
+
+    // Form submission
+    document.querySelector('.sidebar .btn-primary:last-of-type').addEventListener('click', function () {
+      const store = document.querySelector('select').value;
+      const orderInput = document.querySelector('input[type="text"]').value;
+      const type = document.querySelector('input[name="type"]:checked').value;
+      const quantity = document.querySelector('input[type="number"]').value;
+
+      alert(`✅ 订单提交成功！\n\n商店: ${store}\n输入: ${orderInput}\n类型: ${type}\n助力数量: ${quantity}`);
+    });
+
+    // Auto-submit with Enter
+    document.addEventListener('keypress', function (e) {
+      if (e.key === 'Enter' && document.querySelector('input[type="checkbox"]:checked')) {
+        document.querySelector('.sidebar .btn-primary:last-of-type').click();
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+      console.log('✔ 系统加载完成');
+    });
+  </script>
+</body>
+</html>
