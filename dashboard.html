@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>订单 & 成员管理</title>
+  <style>
+    body {
+      font-family: "Microsoft YaHei", sans-serif;
+      background: #f0f2f5;
+      margin: 0;
+      padding: 0;
+      font-size: 13px;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 20px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #4ECDC4;
+    }
+
+    h2 {
+      color: #333;
+      margin-top: 40px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 6px;
+    }
+
+    .summary, .member-summary {
+      margin: 10px 0;
+      padding: 10px;
+      background: #e8f5e9;
+      border: 1px solid #c8e6c9;
+      color: #2e7d32;
+      border-radius: 6px;
+    }
+
+    .form-row, .search-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+    }
+
+    input, select {
+      padding: 6px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      flex: 1;
+    }
+
+    button {
+      padding: 8px 12px;
+      background: #4ECDC4;
+      border: none;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #45b7aa;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    th, td {
+      padding: 8px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+
+    th {
+      background: #f8f9fa;
+    }
+
+    .empty {
+      text-align: center;
+      color: #888;
+      padding: 20px;
+    }
+
+    .status {
+      cursor: pointer;
+      color: #007bff;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #333;
+      color: #fff;
+      padding: 10px 15px;
+      border-radius: 4px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    .toast.show {
+      opacity: 1;
+    }
+
+    .delete-btn {
+      background: #e74c3c;
+    }
+
+    .delete-btn:hover {
+      background: #c0392b;
+    }
+
+    @media (max-width: 600px) {
+      .form-row, .search-bar {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+   <!-- Login Screen -->
+  <div id="loginScreen" style="height: 100vh; display: flex; justify-content: center; align-items: center; background: #e0f7fa;">
+    <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); max-width: 300px; width: 100%;">
+      <h2 style="text-align:center; color: #4ECDC4;">登录</h2>
+      <input type="text" id="username" placeholder="用户名" style="width: 100%; margin: 10px 0; padding: 8px;" />
+      <input type="password" id="password" placeholder="密码" style="width: 100%; margin: 10px 0; padding: 8px;" />
+      <button onclick="login()" style="width: 100%; padding: 10px; background: #4ECDC4; color: white; border: none; border-radius: 4px;">登录</button>
+      <div id="loginError" style="color:red; text-align:center; margin-top:10px; display:none;">用户名或密码错误</div>
+    </div>
+  </div>
+
+  <!-- Main App (hidden by default) -->
+  <div class="container" id="mainApp" style="display: none;">
+  <div class="container">
+    <h1>订单 & 成员管理系统</h1>
+
+    <!-- Order Management -->
+    <h2>📦 订单管理</h2>
+    <div class="summary" id="summaryText">📦 总订单数: 0 | ✅ 已完成: 0</div>
+
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="搜索订单号或链接">
+      <button onclick="searchOrders()">搜索</button>
+      <button onclick="renderOrders()">重置</button>
+    </div>
+
+    <div class="form-row">
+      <input type="text" id="orderInput" placeholder="订单号或链接">
+      <select id="orderType">
+        <option value="普通">普通</option>
+        <option value="真人">真人</option>
+        <option value="新人">新人</option>
+      </select>
+      <input type="number" id="orderQuantity" value="10" min="1">
+      <button onclick="submitOrder()">提交订单</button>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>订单号</th>
+          <th>链接</th>
+          <th>数量</th>
+          <th>完成</th>
+          <th>状态</th>
+          <th>类型</th>
+          <th>日期</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="orderTableBody"></tbody>
+    </table>
+
+    <!-- Member Management -->
+    <h2>👤 成员管理</h2>
+    <div class="member-summary" id="memberSummary">👥 成员总数: 0</div>
+
+    <div class="form-row">
+      <input type="text" id="memberName" placeholder="姓名">
+      <input type="email" id="memberEmail" placeholder="邮箱">
+      <button onclick="addMember()">添加成员</button>
+    </div>
+
+    <div class="search-bar">
+      <input type="text" id="memberSearch" placeholder="搜索姓名或邮箱">
+      <button onclick="searchMembers()">搜索</button>
+      <button onclick="renderMembers()">重置</button>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>姓名</th>
+          <th>邮箱</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="memberTableBody"></tbody>
+    </table>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const orders = [
+      { id: "20250710001", link: "https://task.com/abc", quantity: 10, completed: 6, status: "进行中", type: "普通", created: "2025-07-10" },
+      { id: "20250710002", link: "https://task.com/xyz", quantity: 15, completed: 15, status: "已完成", type: "真人", created: "2025-07-09" }
+    ];
+
+    const members = [
+      { name: "张三", email: "zhangsan@example.com" },
+      { name: "李四", email: "lisi@example.com" }
+    ];
+
+    function renderOrders(data = orders) {
+      const tbody = document.getElementById("orderTableBody");
+      tbody.innerHTML = "";
+      data.forEach((order, i) => {
+        const row = `<tr>
+          <td>${order.id}</td>
+          <td>${order.link}</td>
+          <td>${order.quantity}</td>
+          <td>${order.completed}</td>
+          <td class="status" onclick="toggleStatus(${i})">${order.status}</td>
+          <td>${order.type}</td>
+          <td>${order.created}</td>
+          <td><button class="delete-btn" onclick="deleteOrder(${i})">删除</button></td>
+        </tr>`;
+        tbody.insertAdjacentHTML("beforeend", row);
+      });
+      updateSummary();
+    }
+
+    function renderMembers(data = members) {
+      const tbody = document.getElementById("memberTableBody");
+      tbody.innerHTML = "";
+      data.forEach((m, i) => {
+        const row = `<tr>
+          <td contenteditable="true" onblur="editMember(${i}, 'name', this.innerText)">${m.name}</td>
+          <td contenteditable="true" onblur="editMember(${i}, 'email', this.innerText)">${m.email}</td>
+          <td><button class="delete-btn" onclick="deleteMember(${i})">删除</button></td>
+        </tr>`;
+        tbody.insertAdjacentHTML("beforeend", row);
+      });
+      document.getElementById("memberSummary").textContent = `👥 成员总数: ${members.length}`;
+    }
+
+    function submitOrder() {
+      const input = document.getElementById("orderInput").value.trim();
+      const type = document.getElementById("orderType").value;
+      const quantity = parseInt(document.getElementById("orderQuantity").value);
+
+      if (!input || !quantity) return showToast("请输入完整信息");
+      orders.unshift({
+        id: "ORD" + Date.now().toString().slice(-6),
+        link: input,
+        quantity,
+        completed: 0,
+        status: "进行中",
+        type,
+        created: new Date().toISOString().split("T")[0]
+      });
+      renderOrders();
+      showToast("✅ 订单添加成功");
+    }
+
+    function addMember() {
+      const name = document.getElementById("memberName").value.trim();
+      const email = document.getElementById("memberEmail").value.trim();
+      if (!name || !email) return showToast("请输入姓名和邮箱");
+      members.push({ name, email });
+      renderMembers();
+      showToast("✅ 成员添加成功");
+    }
+
+    function deleteOrder(index) {
+      if (confirm("删除该订单？")) {
+        orders.splice(index, 1);
+        renderOrders();
+        showToast("已删除");
+      }
+    }
+
+    function deleteMember(index) {
+      if (confirm("删除该成员？")) {
+        members.splice(index, 1);
+        renderMembers();
+        showToast("已删除成员");
+      }
+    }
+
+    function editMember(index, field, value) {
+      members[index][field] = value.trim();
+      showToast("信息已更新");
+    }
+
+    function toggleStatus(index) {
+      const s = ["进行中", "已完成", "已取消"];
+      let i = s.indexOf(orders[index].status);
+      orders[index].status = s[(i + 1) % s.length];
+      renderOrders();
+    }
+
+    function searchOrders() {
+      const val = document.getElementById("searchInput").value.toLowerCase();
+      const filtered = orders.filter(o => o.id.includes(val) || o.link.includes(val));
+      renderOrders(filtered);
+    }
+
+    function searchMembers() {
+      const val = document.getElementById("memberSearch").value.toLowerCase();
+      const filtered = members.filter(m => m.name.includes(val) || m.email.includes(val));
+      renderMembers(filtered);
+    }
+
+    function updateSummary() {
+      const total = orders.length;
+      const done = orders.filter(o => o.status === "已完成").length;
+      document.getElementById("summaryText").textContent = `📦 总订单数: ${total} | ✅ 已完成: ${done}`;
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      toast.textContent = msg;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 3000);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      renderOrders();
+      renderMembers();
+    });
+
+    function login() {
+  const user = document.getElementById("username").value.trim();
+  const pass = document.getElementById("password").value.trim();
+  const error = document.getElementById("loginError");
+
+  if (user === "admin" && pass === "admin") {
+    document.getElementById("loginScreen").style.display = "none";
+    document.getElementById("mainApp").style.display = "block";
+  } else {
+    error.style.display = "block";
+  }
+}
+  </script>
+</body>
+</html>
